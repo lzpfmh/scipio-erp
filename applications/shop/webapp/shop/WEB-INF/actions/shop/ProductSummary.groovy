@@ -31,8 +31,9 @@ import org.ofbiz.product.config.ProductConfigWorker;
 import org.ofbiz.product.product.ProductContentWrapper;
 import org.ofbiz.product.store.*;
 import org.ofbiz.service.*;
+import com.ilscipio.scipio.solr.*;
 
-// SCIPIO: NOTE: This script is responsible for checking whether solr is applicable.
+// SCIPIO: NOTE: This script is responsible for checking whether solr is applicable (if no check, implies the shop assumes solr is always enabled).
 
 //either optProduct, optProductId or productId must be specified
 product = request.getAttribute("optProduct");
@@ -62,7 +63,7 @@ context.remove("totalPrice");
 
 // get the product entity
 if (!product && productId) {
-    product = delegator.findByPrimaryKeyCache("Product", [productId : productId]);
+    product = delegator.findOne("Product", [productId : productId], true);
 }
 if (product) {
     //if order is purchase then don't calculate available inventory for product.
@@ -76,7 +77,7 @@ if (product) {
             }
         }*/
     } else {
-       supplierProducts = delegator.findByAndCache("SupplierProduct", [productId : product.productId], ["-availableFromDate"]);
+       supplierProducts = delegator.findByAnd("SupplierProduct", [productId : product.productId], ["-availableFromDate"], true);
        supplierProduct = EntityUtil.getFirst(supplierProducts);
        if (supplierProduct?.standardLeadTimeDays != null) {
            standardLeadTimeDays = supplierProduct.standardLeadTimeDays;
@@ -88,19 +89,11 @@ if (product) {
     productContentWrapper = new ProductContentWrapper(product, request);
     context.productContentWrapper = productContentWrapper;
 } else if (solrProduct) {
-    String country = session.getAttribute("locale");
-    if (!country) 
-        country = request.getLocale().getLanguage();
-    for (String key in solrProduct.keySet()) {
-        if (key.endsWith("_" + request.getLocale().getLanguage())) {
-            if (key.startsWith("title"))
-                context.solrTitle = solrProduct.get(key);
-            else if (key.startsWith("description"))
-                context.description =  solrProduct.get(key);
-            else if (key.startsWith("longdescription"))
-                context.longdescription =  solrProduct.get(key);
-        }
-    }
+    solrProductWorker = SolrValueWorker.getWorker(solrProduct, context.locale, productStore ?: ProductStoreWorker.getProductStore(request));
+
+    context.solrTitle = solrProductWorker.getFieldValueI18nForDisplay("title");
+    context.description = solrProductWorker.getFieldValueI18nForDisplay("description");
+    context.longdescription = solrProductWorker.getFieldValueI18nForDisplay("longdescription");
 }
 
 categoryId = null;
@@ -119,6 +112,7 @@ if (product) {
         priceContext.agreementId = cart.getAgreementId();
         priceContext.partyId = cart.getPartyId();  // IMPORTANT: otherwise it'll be calculating prices using the logged in user which could be a CSR instead of the customer
         priceContext.checkIncludeVat = "Y";
+        priceContext.getMinimumVariantPrice = true;
         priceMap = dispatcher.runSync("calculateProductPrice", priceContext);
 
         context.price = priceMap;
@@ -162,7 +156,7 @@ if (reviews) {
 }
 
 // an example of getting features of a certain type to show
-sizeProductFeatureAndAppls = delegator.findByAndCache("ProductFeatureAndAppl", [productId : productId, productFeatureTypeId : "SIZE"], ["sequenceNum", "defaultSequenceNum"]);
+sizeProductFeatureAndAppls = delegator.findByAnd("ProductFeatureAndAppl", [productId : productId, productFeatureTypeId : "SIZE"], ["sequenceNum", "defaultSequenceNum"], true);
 
 context.product = product;
 context.solrProduct = solrProduct;

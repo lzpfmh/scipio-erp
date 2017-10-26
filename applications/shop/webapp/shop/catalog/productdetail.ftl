@@ -283,7 +283,7 @@
                     <span id="product-price_old"><del><@ofbizCurrency amount=oldPrice isoCode=price.currencyUsed /></del></span>
                 </#if>
                  
-                <#if (!product.isVirtual?has_content || (product.isVirtual?has_content && product.isVirtual!?upper_case == "Y"))>
+                <#if ((product.isVirtual?has_content && product.isVirtual!?upper_case == "Y"))>
                     <span id="product-price"><strong>${uiLabelMap.OrderChooseVariations}...</strong></span>
                 <#elseif currentPrice?has_content>
                     <span id="product-price"><strong><@ofbizCurrency amount=currentPrice isoCode=price.currencyUsed /></strong></span>
@@ -542,12 +542,12 @@
     
     <#if productDetailLongDescContentString?has_content || productDetailProductAttribContentString?has_content>
         <@tabs>
-            <#if productDetailLongDescContentString?has_content>
+            <#if productDetailLongDescContentString?trim?has_content>
                 <@tab title=uiLabelMap.CommonOverview>
                     ${productDetailLongDescContentString}
                 </@tab>
             </#if>
-            <#if productDetailProductAttribContentString?has_content>
+            <#if productDetailProductAttribContentString?trim?has_content>
                 <@tab title=uiLabelMap.CommonSpecifications>
                     ${productDetailProductAttribContentString}
                 </@tab>

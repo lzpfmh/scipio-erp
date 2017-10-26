@@ -6170,6 +6170,42 @@
         <value xml:lang="zh_CN">注销</value>
         <value xml:lang="zh_TW">登出</value>
     </property>
+    <property key="FacebookLogin">
+        <value xml:lang="de">Anmeldung mit Facebook</value>
+        <value xml:lang="en">Sign in with Facebook</value>
+        <value xml:lang="fr">Connectez-vous avec Facebook</value>
+        <value xml:lang="hi_IN">Facebook के साथ में साइन इन करें</value>
+        <value xml:lang="it">Collegati a Facebook</value>
+        <value xml:lang="ja">Facebookのアカウントでログイン</value>
+        <value xml:lang="nl">Log in met Facebook</value>
+        <value xml:lang="pt">Faça login no Facebook</value>
+        <value xml:lang="zh">请用facebook</value>
+        <value xml:lang="zh_TW">請用facebook</value>
+    </property>
+    <property key="GoogleLogin">
+        <value xml:lang="de">Anmeldung mit Google+</value>
+        <value xml:lang="en">Sign in with Google+</value>
+        <value xml:lang="fr">Connectez-vous avec Google+</value>
+        <value xml:lang="hi_IN">Google+ के साथ में साइन इन करें</value>
+        <value xml:lang="it">Collegati a Google+</value>
+        <value xml:lang="ja">Google+のアカウントでログイン</value>
+        <value xml:lang="nl">Log in met Google+</value>
+        <value xml:lang="pt">Faça login no Google+</value>
+        <value xml:lang="zh">请用google+</value>
+        <value xml:lang="zh_TW">請用google+</value>
+    </property>
+    <property key="TwitterLogin">
+        <value xml:lang="de">Anmeldung mit Twitter</value>
+        <value xml:lang="en">Sign in with Twitter</value>
+        <value xml:lang="fr">Connectez-vous avec Twitter</value>
+        <value xml:lang="hi_IN">Twitter के साथ में साइन इन करें</value>
+        <value xml:lang="it">Collegati a Twitter</value>
+        <value xml:lang="ja">Twitterのアカウントでログイン</value>
+        <value xml:lang="nl">Log in met Twitter</value>
+        <value xml:lang="pt">Faça login no Twitter</value>
+        <value xml:lang="zh">请用twitter</value>
+        <value xml:lang="zh_TW">請用twitter</value>
+    </property>
     <property key="CommonLongDescription">
         <value xml:lang="de">Ausführliche Beschreibung</value>
         <value xml:lang="en">Long Description</value>
@@ -8136,6 +8172,13 @@
         <value xml:lang="zh">或者</value>
         <value xml:lang="zh_CN">或者</value>
         <value xml:lang="zh_TW">或</value>
+    </property>
+    <property key="CommonOrLoginWith">
+        <value xml:lang="de">Oder melden Sie sich bei</value>
+        <value xml:lang="en">Or login with</value>
+        <value xml:lang="es">O inicia sesión con</value>
+        <value xml:lang="fr">Ou connectez-vous avec</value>
+        <value xml:lang="pt">Ou faça o login com</value>
     </property>
     <property key="CommonOrder">
         <value xml:lang="ar">أمر</value>
@@ -13036,6 +13079,9 @@
         <value xml:lang="zh">欢迎使用OFBiz个人主页</value>
         <value xml:lang="zh_TW">歡迎使用OFBiz儀表板</value>
     </property>
+    <property key="CommonWith">
+        <value xml:lang="en">With</value>
+    </property>
     <property key="CommonWhere">
         <value xml:lang="ar">أين</value>
         <value xml:lang="cs">Kde</value>
@@ -16376,5 +16422,21 @@
     <property key="CommonThisIsAPlaceholder">
         <value xml:lang="de">Das ist ein Platzhalter!</value>
         <value xml:lang="en">This is a placeholder!</value>
+    </property>
+    <property key="CommonConfirmDeleteRecordPermanent">
+        <value xml:lang="en">You are about to delete the record permanently. Do you want to continue?</value>
+        <value xml:lang="de">Sie sind dabei den Eintrag dauerhaft zu löschen. Wollen Sie fortfahren?</value>
+    </property>
+    <property key="CommonConfirmDeleteRecordAssocPermanent">
+        <value xml:lang="en">You are about to remove the record association. The record itself will remain in the system. Do you want to continue?</value>
+        <value xml:lang="de">Sie sind dabei, die Datensatzzuordnung zu entfernen. Der Datensatz selbst bleibt im System. Möchtest du fortfahren?</value>
+    </property>
+    <property key="CommonDisplayOptions">
+        <value xml:lang="en">Display Options</value>
+        <value xml:lang="de">Anzeigeoptionen</value>
+    </property>
+    <property key="CommonRemoveAssoc">
+        <value xml:lang="en">Remove Assoc</value>
+        <value xml:lang="de">Assoc entfernen</value>
     </property>
 </resource>

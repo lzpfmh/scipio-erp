@@ -1720,11 +1720,27 @@ under the License.
     </service>
     
     <!-- SCIPIO: New service to build catalog/category/product tree-like structure according to the library being passed (currently jsTree supported only) -->
-    <service name="buildCatalogTree" engine="java" default-entity-name="ProdCatalog" location="org.ofbiz.product.category.CategoryServices" invoke="buildCatalogTree">
+    <service name="buildCatalogTree" engine="java" default-entity-name="ProdCatalog" location="com.ilscipio.scipio.product.category.CategoryServices" invoke="buildCatalogTree">
         <description>Builds a tree containing catalogs, categories and products using catalogs as starting point</description>
         <auto-attributes mode="IN" include="pk" optional="false" />
         <attribute name="library" mode="IN" type="String" optional="true" default-value="jsTree" />
         <attribute name="mode" mode="IN" type="String" optional="true" default-value="full" />
+        <attribute name="state" mode="IN" type="Map" optional="true">
+            <description>Map of state attributes for top node: opened, selected, disabled. (added 2017-10-11)</description>
+        </attribute>
+        <attribute name="categoryStates" mode="IN" type="Map" optional="true">
+            <description>Map of categoryIds to maps of state attributes (added 2017-10-11).
+                WARN: can't specify specific path for many-parents</description>
+        </attribute>
+        <attribute name="useCategoryCache" mode="IN" type="Boolean" optional="true"/>
+        <attribute name="useProductCache" mode="IN" type="Boolean" optional="true"/>
+        <attribute name="includeCategoryData" mode="IN" type="Boolean" optional="true" default-value="false"/>
+        <attribute name="includeProductData" mode="IN" type="Boolean" optional="true" default-value="false"/>
+        <attribute name="maxProductsPerCat" mode="IN" type="Integer" optional="true"/><!-- default: no limit (same as -1) -->
+        <attribute name="includeEmptyTop" mode="IN" type="Boolean" optional="true" default-value="false">
+            <description>If false (default), empty catalog or top node is omitted</description>
+        </attribute>
+        <attribute name="productStoreCatalog" mode="IN" type="GenericValue" optional="true"/>
         <attribute name="treeList" mode="OUT" type="List" optional="false" />
     </service>
 

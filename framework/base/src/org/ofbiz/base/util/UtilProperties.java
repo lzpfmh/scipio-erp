@@ -32,6 +32,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Iterator;
@@ -151,7 +152,9 @@ public class UtilProperties implements Serializable {
     private static Number getPropertyNumber(String resource, String name, Number defaultNumber, String type) {
         String str = getPropertyValue(resource, name);
         if (UtilValidate.isEmpty(str)) {
-            Debug.logWarning("Error converting String \"" + str + "\" to " + type + "; using defaultNumber " + defaultNumber + ".", module);
+            // SCIPIO: 2017-07-15: should not be a warning nor error 
+            //Debug.logWarning("Error converting String \"" + str + "\" to " + type + "; using defaultNumber " + defaultNumber + ".", module);
+            Debug.logInfo("Property [" + resource + "/" + name + "] empty; using defaultNumber " + defaultNumber + ".", module);
             return defaultNumber;
         } else
             try {
@@ -167,10 +170,25 @@ public class UtilProperties implements Serializable {
      * If the specified property name or properties file is not found, the defaultValue is returned.
      * @param resource The name of the resource - if the properties file is 'webevent.properties', the resource name is 'webevent'
      * @param name The name of the property in the properties file
-     * @param defaultValue Optional: The Value to return if the property is not found or not the correct format.
+     * @param defaultValue Optional: The Value to return if the property is not found or not the correct format. [SCIPIO: 2017-08-29: now boxed type]
      * @return A Boolean-Object of the property; or if not found the defaultValue
      */
     public static Boolean getPropertyAsBoolean(String resource, String name, boolean defaultValue) {
+        String str = getPropertyValue(resource, name);
+        if ("true".equalsIgnoreCase(str)) return Boolean.TRUE;
+        else if ("false".equalsIgnoreCase(str)) return Boolean.FALSE;
+        else return defaultValue;
+    }
+    
+    /**
+     * Returns a Boolean-Object of the specified property name from the specified resource/properties file. [SCIPIO: 2017-08-29: boxed-type overload]
+     * If the specified property name or properties file is not found, the defaultValue is returned.
+     * @param resource The name of the resource - if the properties file is 'webevent.properties', the resource name is 'webevent'
+     * @param name The name of the property in the properties file
+     * @param defaultValue Optional: The Value to return if the property is not found or not the correct format. [SCIPIO: 2017-08-29: now boxed type]
+     * @return A Boolean-Object of the property; or if not found the defaultValue
+     */
+    public static Boolean getPropertyAsBoolean(String resource, String name, Boolean defaultValue) {
         String str = getPropertyValue(resource, name);
         if ("true".equalsIgnoreCase(str)) return Boolean.TRUE;
         else if ("false".equalsIgnoreCase(str)) return Boolean.FALSE;
@@ -188,6 +206,18 @@ public class UtilProperties implements Serializable {
     public static Integer getPropertyAsInteger(String resource, String name, int defaultNumber) {
         return (Integer)getPropertyNumber(resource, name, defaultNumber, "Integer");
     }
+    
+    /**
+     * Returns an Integer-Object of the specified property name from the specified resource/properties file. [SCIPIO: 2017-08-29: boxed-type overload]
+     * If the specified property name or properties file is not found, the defaultNumber is returned.
+     * @param resource The name of the resource - if the properties file is 'webevent.properties', the resource name is 'webevent'
+     * @param name The name of the property in the properties file
+     * @param defaultNumber Optional: The Value to return if the property is not found. [SCIPIO: 2017-08-29: now boxed type]
+     * @return An Integer-Object of the property; or if not found the defaultNumber
+     */
+    public static Integer getPropertyAsInteger(String resource, String name, Integer defaultNumber) {
+        return (Integer)getPropertyNumber(resource, name, defaultNumber, "Integer");
+    }
 
     /**
      * Returns a Long-Object of the specified property name from the specified resource/properties file.
@@ -198,6 +228,18 @@ public class UtilProperties implements Serializable {
      * @return A Long-Object of the property; or if not found the defaultNumber
      */
     public static Long getPropertyAsLong(String resource, String name, long defaultNumber) {
+        return (Long)getPropertyNumber(resource, name, defaultNumber, "Long");
+    }
+    
+    /**
+     * Returns a Long-Object of the specified property name from the specified resource/properties file. [SCIPIO: 2017-08-29: boxed-type overload]
+     * If the specified property name or properties file is not found, the defaultNumber is returned.
+     * @param resource The name of the resource - if the properties file is 'webevent.properties', the resource name is 'webevent'
+     * @param name The name of the property in the properties file
+     * @param defaultNumber Optional: The Value to return if the property is not found. [SCIPIO: 2017-08-29: now boxed type]
+     * @return A Long-Object of the property; or if not found the defaultNumber
+     */
+    public static Long getPropertyAsLong(String resource, String name, Long defaultNumber) {
         return (Long)getPropertyNumber(resource, name, defaultNumber, "Long");
     }
 
@@ -212,6 +254,18 @@ public class UtilProperties implements Serializable {
     public static Float getPropertyAsFloat(String resource, String name, float defaultNumber) {
         return (Float)getPropertyNumber(resource, name, defaultNumber, "Float");
     }
+    
+    /**
+     * Returns a Float-Object of the specified property name from the specified resource/properties file. [SCIPIO: 2017-08-29: boxed-type overload]
+     * If the specified property name or properties file is not found, the defaultNumber is returned.
+     * @param resource The name of the resource - if the properties file is 'webevent.properties', the resource name is 'webevent'
+     * @param name The name of the property in the properties file
+     * @param defaultNumber Optional: The Value to return if the property is not found. [SCIPIO: 2017-08-29: now boxed type]
+     * @return A Long-Object of the property; or if not found the defaultNumber
+     */
+    public static Float getPropertyAsFloat(String resource, String name, Float defaultNumber) {
+        return (Float)getPropertyNumber(resource, name, defaultNumber, "Float");
+    }
 
     /**
      * Returns a Double-Object of the specified property name from the specified resource/properties file.
@@ -222,6 +276,18 @@ public class UtilProperties implements Serializable {
      * @return A Double-Object of the property; or if not found the defaultNumber
      */
     public static Double getPropertyAsDouble(String resource, String name, double defaultNumber) {
+        return (Double)getPropertyNumber(resource, name, defaultNumber, "Double");
+    }
+    
+    /**
+     * Returns a Double-Object of the specified property name from the specified resource/properties file. [SCIPIO: 2017-08-29: boxed-type overload]
+     * If the specified property name or properties file is not found, the defaultNumber is returned.
+     * @param resource The name of the resource - if the properties file is 'webevent.properties', the resource name is 'webevent'
+     * @param name The name of the property in the properties file
+     * @param defaultNumber Optional: The Value to return if the property is not found. [SCIPIO: 2017-08-29: now boxed type]
+     * @return A Double-Object of the property; or if not found the defaultNumber
+     */
+    public static Double getPropertyAsDouble(String resource, String name, Double defaultNumber) {
         return (Double)getPropertyNumber(resource, name, defaultNumber, "Double");
     }
 
@@ -239,7 +305,7 @@ public class UtilProperties implements Serializable {
         try {
             result = new BigInteger(strValue);
         } catch (NumberFormatException nfe) {
-            Debug.logWarning("Couldnt convert String \"" + strValue + "\" to BigInteger; using defaultNumber " + defaultNumber.toString() + ".", module);
+            Debug.logWarning("Couldn't convert String \"" + strValue + "\" to BigInteger; using defaultNumber " + defaultNumber.toString() + ".", module);
         }
         return result;
     }
@@ -258,7 +324,7 @@ public class UtilProperties implements Serializable {
         try {
             result = new BigDecimal(strValue);
         } catch (NumberFormatException nfe) {
-            Debug.logWarning("Couldnt convert String \"" + strValue + "\" to BigDecimal; using defaultNumber " + defaultNumber.toString() + ".", module);
+            Debug.logWarning("Couldn't convert String \"" + strValue + "\" to BigDecimal; using defaultNumber " + defaultNumber.toString() + ".", module);
         }
         return result;
     }
@@ -1073,7 +1139,45 @@ public class UtilProperties implements Serializable {
         }
         return properties;
     }
+    
+    /**
+     * SCIPIO: Returns all property names in the given Properties that start with given prefix
+     * and end with given suffix, with option to forbid dots in between.
+     * Added 2017-07-10.
+     */
+    public static Set<String> getPropertyNamesWithPrefixSuffix(Properties properties, String prefix, String suffix, boolean allowDots, boolean returnPrefix, boolean returnSuffix) {
+        Set<String> names = new HashSet<>();
+        int suffixLength = (suffix == null ? 0 : suffix.length());
+        for(String name : properties.stringPropertyNames()) {
+            if ((prefix == null || name.startsWith(prefix)) && (suffix == null || name.endsWith(suffix))) {
+                String middle = name.substring(prefix.length(), name.length() - suffixLength);
+                if (allowDots || !middle.contains(".")) {
+                    names.add((returnPrefix ? prefix : "") + middle + (returnSuffix ? suffix : ""));
+                }
+            }
+        }
+        return names;
+    }
 
+    /**
+     * SCIPIO: Puts all property name/value pairs in the given Properties that start with given prefix
+     * and end with given suffix, with option to forbid dots in between, to the given out map.
+     * Added 2017-07-10.
+     */
+    public static void putPropertiesWithPrefixSuffix(Map<String, ? super String> out, Properties properties, String prefix, String suffix, boolean allowDots, boolean returnPrefix, boolean returnSuffix) {
+        int suffixLength = (suffix == null ? 0 : suffix.length());
+        for(String name : properties.stringPropertyNames()) {
+            if ((prefix == null || name.startsWith(prefix)) && (suffix == null || name.endsWith(suffix))) {
+                String middle = name.substring(prefix.length(), name.length() - suffixLength);
+                if (allowDots || !middle.contains(".")) {
+                    String value = properties.getProperty(name);
+                    if (value != null) value = value.trim();
+                    out.put((returnPrefix ? prefix : "") + middle + (returnSuffix ? suffix : ""), value);
+                }
+            }
+        }
+    }
+    
     /** Custom ResourceBundle class. This class extends ResourceBundle
      * to add custom bundle caching code and support for the OFBiz custom XML
      * properties file format.

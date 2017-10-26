@@ -50,7 +50,7 @@
         <value xml:lang="zh_TW">在當前分類中沒有找到產品.</value>
     </property>
     <property key="ImageManagementErrorRmoveDefaultImage">
-        <value xml:lang="en">Unable to remove an image. It is the defualt image.</value>
+        <value xml:lang="en">Unable to remove an image. It is the default image.</value>
         <value xml:lang="ja">画像の削除はできません。デフォルトの画像です。</value>
         <value xml:lang="th">ไม่สามารถลบรูปภาพ</value>
         <value xml:lang="zh">无法删除图片。它是缺省图片。</value>
@@ -1339,5 +1339,11 @@
         <value xml:lang="th">รหัสการเปลี่ยนแปลงสินค้าต้องการแต่ไม่พบ, กรุณากรอกรหัสสำหรับการเปลี่ยนแปลงสินค้าใหม่.</value>
         <value xml:lang="zh">缺少必须的变型产品标识， 请为新的变型产品输入一个标识。</value>
         <value xml:lang="zh_TW">缺少必須的變型產品識別, 請為新的變型產品輸入一個識別.</value>
+    </property>
+    <!-- TODO: localize -->
+    <property key="productevents.productstore_already_exists_for_id">
+        <value xml:lang="de">Der Produktspeicher existiert bereits mit ID: ${productStoreId}</value>
+        <value xml:lang="en">Product store already exists with ID: ${productStoreId}</value>
+        <value xml:lang="fr">Le magasin de produits existe déjà avec ID: ${productStoreId}</value>
     </property>
 </resource>

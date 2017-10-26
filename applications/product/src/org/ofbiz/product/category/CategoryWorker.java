@@ -46,16 +46,10 @@ import org.ofbiz.entity.condition.EntityCondition;
 import org.ofbiz.entity.condition.EntityOperator;
 import org.ofbiz.entity.util.EntityQuery;
 import org.ofbiz.entity.util.EntityUtil;
-import org.ofbiz.product.product.ProductContentWrapper;
 import org.ofbiz.product.product.ProductWorker;
 import org.ofbiz.service.DispatchContext;
-import org.ofbiz.service.GenericServiceException;
 import org.ofbiz.service.LocalDispatcher;
 import org.ofbiz.service.ServiceUtil;
-
-import com.ilscipio.scipio.treeMenu.TreeDataItem;
-import com.ilscipio.scipio.treeMenu.jsTree.JsTreeDataItem;
-import com.ilscipio.scipio.treeMenu.jsTree.JsTreeDataItem.JsTreeDataItemState;
 
 import javolution.util.FastList;
 
@@ -69,6 +63,14 @@ public class CategoryWorker {
     private CategoryWorker() {
     }
 
+    /**
+     * Gets catalog top category.
+     * <p>
+     * SCIPIO: NOTE (2017-08-15): This stock method relies entirely on the session attribute and request parameter
+     * <code>CATALOG_TOP_CATEGORY</code>; in stock ofbiz, it was intended to be used in backend.
+     * For store implementations, the method that you most likely want 
+     * is {@link org.ofbiz.product.catalog.CatalogWorker#getCatalogTopCategoryId}.
+     */
     public static String getCatalogTopCategory(ServletRequest request, String defaultTopCategory) {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         Map<String, Object> requestParameters = UtilHttp.getParameterMap(httpRequest);
@@ -596,106 +598,6 @@ public class CategoryWorker {
         return results;
     }
 
-    /**
-     * SCIPIO: Retrieves categories based on either a list of
-     * ProductCategoryRollup or ProdCatalogCategory and returns a list of
-     * TreeDataItem representing categories
-     * 
-     * @param delegator
-     * @param dispatcher
-     * @param productCategories
-     * @return
-     * @throws GenericEntityException
-     * @throws GenericServiceException
-     */
-    public static List<? extends TreeDataItem> getTreeCategories(Delegator delegator, LocalDispatcher dispatcher, Locale locale,
-            List<GenericValue> productCategories, String library, String parentId) throws GenericEntityException, GenericServiceException {
-        List<TreeDataItem> treeDataItemList = FastList.newInstance();
-        for (GenericValue productCategory : productCategories) {
-            GenericValue category = null;
-            if (productCategory.getModelEntity().getEntityName().equals("ProductCategoryRollup")) {
-                category = productCategory.getRelatedOne("CurrentProductCategory", true);
-            } else if (productCategory.getModelEntity().getEntityName().equals("ProdCatalogCategory")) {
-                category = productCategory.getRelatedOne("ProductCategory", true);
-            }
-            if (UtilValidate.isNotEmpty(category)) {
-                List<GenericValue> childProductCategoryRollups = EntityQuery.use(delegator).from("ProductCategoryRollup")
-                        .where("parentProductCategoryId", category.getString("productCategoryId")).orderBy("sequenceNum").cache(true).queryList();
-                if (UtilValidate.isNotEmpty(childProductCategoryRollups))
-                    treeDataItemList.addAll(
-                            getTreeCategories(delegator, dispatcher, locale, childProductCategoryRollups, library, category.getString("productCategoryId")));
-
-                Map<String, Object> productCategoryMembers = dispatcher.runSync("getProductCategoryMembers",
-                        UtilMisc.toMap("categoryId", productCategory.getString("productCategoryId")));
-                if (UtilValidate.isNotEmpty(productCategoryMembers) && UtilValidate.isNotEmpty(productCategoryMembers.get("categoryMembers"))) {
-                    treeDataItemList.addAll(getTreeProducts(dispatcher, locale, UtilGenerics.<GenericValue>checkList(productCategoryMembers.get("categoryMembers")), library,
-                            productCategory.getString("productCategoryId")));
-                }
-
-                String categoryId = category.getString("productCategoryId");
-                
-                String categoryName = null;
-                CategoryContentWrapper wrapper = new CategoryContentWrapper(dispatcher, category, locale, null);
-                categoryName = wrapper.get("CATEGORY_NAME");
-                if (UtilValidate.isEmpty(categoryName)) {
-                    // 2016-03-22: Some categories don't have a name but have description
-                    categoryName = wrapper.get("DESCRIPTION");
-                    if (UtilValidate.isEmpty(categoryName)) {
-                        categoryName = category.getString("productCategoryId");
-                    }
-                }
-
-                if (library.equals("jsTree")) {
-                    JsTreeDataItem dataItem = null;
-                    dataItem = new JsTreeDataItem(categoryId, categoryName + " [" + categoryId + "]", "jstree-folder", new JsTreeDataItemState(false, false),
-                            parentId);
-                    dataItem.setType("category");
-                    if (UtilValidate.isNotEmpty(dataItem))
-                        treeDataItemList.add(dataItem);
-                }
-            }
-        }
-        return treeDataItemList;
-    }
-
-    /**
-     * SCIPIO: Retrieves products members for a given category and returns a list
-     * of JsTreeDataItem representing products
-     * 
-     * @param delegator
-     * @param dispatcher
-     * @param productCategories
-     * @return
-     * @throws GenericEntityException
-     * @throws GenericServiceException
-     */
-    public static List<? extends TreeDataItem> getTreeProducts(LocalDispatcher dispatcher, Locale locale, List<GenericValue> productCategoryMembers,
-            String library, String parentId) throws GenericEntityException {
-        List<TreeDataItem> products = FastList.newInstance();
-        if (UtilValidate.isNotEmpty(productCategoryMembers)) {
-            for (GenericValue productCategoryMember : productCategoryMembers) {
-                GenericValue product = productCategoryMember.getRelatedOne("Product", true);
-
-                String productId = product.getString("productId");
-                String productName = product.getString("productName");
-                if (UtilValidate.isEmpty(productName)) {
-                    productName = productId;
-                    ProductContentWrapper wrapper = new ProductContentWrapper(dispatcher, product, locale, null);
-                    if (UtilValidate.isNotEmpty(wrapper.get("PRODUCT_NAME")))
-                        productName = wrapper.get("PRODUCT_NAME");
-                }
-
-                if (library.equals("jsTree")) {
-                    JsTreeDataItem dataItem = new JsTreeDataItem(productId, productName + " [" + productId + "]", "jstree-file",
-                            new JsTreeDataItemState(false, false), parentId);
-                    dataItem.setType("product");
-                    products.add(dataItem);
-                }
-            }
-        }
-        return products;
-    }
-    
     /**
      * SCIPIO: Returns true only if the category ID is child of the given parent category ID.
      * <p>

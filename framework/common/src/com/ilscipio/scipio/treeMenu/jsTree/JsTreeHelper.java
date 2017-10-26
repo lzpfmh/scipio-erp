@@ -3,12 +3,10 @@ package com.ilscipio.scipio.treeMenu.jsTree;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
-import org.ofbiz.base.util.Debug;
 import org.ofbiz.base.util.UtilValidate;
-
-import javolution.util.FastMap;
 
 /**
  * Provides several utilities for handling jsTree objects (data, settings,
@@ -17,13 +15,13 @@ import javolution.util.FastMap;
  * @author jsoto
  * 
  */
+@SuppressWarnings("serial")
 public class JsTreeHelper extends ArrayList<JsTreeDataItem> {
-    private static final long serialVersionUID = -8201109323209706803L;
-    private static String JSTREE_FIELD_ID_SEPARATOR = "_";
+    private static final String module = JsTreeHelper.class.getName();
 
-    private static String module = "JsTreeHelper";
+    private static final String JSTREE_FIELD_ID_SEPARATOR = "_";
 
-    private Map<String, Integer> sameIdDataItemsMap = FastMap.newInstance();
+    private Map<String, Integer> sameIdDataItemsMap = new HashMap<>();
 
     @Override
     public boolean add(JsTreeDataItem e) {

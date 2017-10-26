@@ -444,6 +444,7 @@ public class UtilMisc {
      * SCIPIO: Create a HashSet from passed objX parameters
      * @return The resulting HashSet
      */
+    @SafeVarargs
     public static <T> Set<T> toHashSet(T... obj) {
         return new HashSet<T>(Arrays.asList(obj));
     }
@@ -751,7 +752,13 @@ public class UtilMisc {
     // Private lazy-initializer class
     private static class LocaleHolder {
         private static final List<Locale> availableLocaleList = getAvailableLocaleList();
-
+        
+        /** SCIPIO: SPECIAL: Available locales automatically expanded to include countries (country required) (added 2017-10-11) */
+        private static final List<Locale> availableLocaleExpandedCountryRequiredList = getAvailableLocaleExpandedCountryRequiredList();
+        
+        /** SCIPIO: SPECIAL: Available locales automatically expanded to include countries, but will also show locales not having countries (added 2017-10-11) */
+        private static final List<Locale> availableLocaleExpandedCountryOptionalList = getAvailableLocaleExpandedCountryOptionalList();
+        
         private static List<Locale> getAvailableLocaleList() {
             TreeMap<String, Locale> localeMap = new TreeMap<String, Locale>();
             String localesString = UtilProperties.getPropertyValue("general", "locales.available");
@@ -772,11 +779,71 @@ public class UtilMisc {
             }
             return Collections.unmodifiableList(new ArrayList<Locale>(localeMap.values()));
         }
+        
+        /** SCIPIO: SPECIAL: Returns a List of available locales sorted by display name expanded to include country codes (added 2017-10-11) */
+        private static List<Locale> getAvailableLocaleExpandedCountryRequiredList() {
+            List<Locale> list = getAvailableLocaleExpandedCountryOptionalList();
+            ArrayList<Locale> filtered = new ArrayList<>();
+            for(Locale locale : list) {
+                if (UtilValidate.isNotEmpty(locale.getCountry())) {
+                    filtered.add(locale);
+                }
+            }
+            filtered.trimToSize();
+            return Collections.unmodifiableList(filtered);
+        }
+        
+        /** SCIPIO: SPECIAL: Returns a List of available locales sorted by display name expanded to include country codes and also without country codes (added 2017-10-11) */
+        private static List<Locale> getAvailableLocaleExpandedCountryOptionalList() {
+            TreeMap<String, Locale> localeMap = new TreeMap<String, Locale>();
+            String localesString = UtilProperties.getPropertyValue("general", "locales.available");
+            if (UtilValidate.isNotEmpty(localesString)) {
+                List<String> idList = StringUtil.split(localesString, ",");
+                Set<String> genericLangs = new HashSet<>();
+                for (String id : idList) {
+                    Locale curLocale = parseLocale(id);
+                    localeMap.put(curLocale.getDisplayName(), curLocale);
+                    //if (UtilValidate.isEmpty(curLocale.getCountry())) { // TODO: REVIEW: don't restrict the countries with this list for now...
+                    genericLangs.add(curLocale.getLanguage());
+                    //}
+                }
+                Locale[] locales = Locale.getAvailableLocales();
+                for (int i = 0; i < locales.length && locales[i] != null; i++) {
+                    if (genericLangs.contains(locales[i].getLanguage())) {
+                        String displayName = locales[i].getDisplayName();
+                        if (!displayName.isEmpty()) {
+                            localeMap.put(displayName, locales[i]);
+                        }
+                    }
+                }
+            } else {
+                Locale[] locales = Locale.getAvailableLocales();
+                for (int i = 0; i < locales.length && locales[i] != null; i++) {
+                    String displayName = locales[i].getDisplayName();
+                    if (!displayName.isEmpty()) {
+                        localeMap.put(displayName, locales[i]);
+                    }
+                }
+            }
+            return Collections.unmodifiableList(new ArrayList<Locale>(localeMap.values()));
+        }
     }
 
     /** Returns a List of available locales sorted by display name */
     public static List<Locale> availableLocales() {
         return LocaleHolder.availableLocaleList;
+    }
+    
+    /** SCIPIO: SPECIAL: Returns a List of available locales sorted by display name expanded to include country codes (added 2017-10-11) 
+     * NOTE: This list may be subject to restrictions by user configuration (now or in the future) - do not rely on this to get a list of all existing countries. */
+    public static List<Locale> availableLocalesExpandedCountryRequired() {
+        return LocaleHolder.availableLocaleExpandedCountryRequiredList;
+    }
+    
+    /** SCIPIO: SPECIAL: Returns a List of available locales sorted by display name expanded to include country codes and also without country codes (added 2017-10-11).
+     * NOTE: This list may be subject to restrictions by user configuration (now or in the future) - do not rely on this to get a list of all existing countries. */
+    public static List<Locale> availableLocalesExpandedCountryOptional() {
+        return LocaleHolder.availableLocaleExpandedCountryOptionalList;
     }
 
     /** @deprecated use Thread.sleep() */
@@ -949,7 +1016,7 @@ public class UtilMisc {
 
     /**
      * SCIPIO: Returns an unmodifiable hash set.
-     * we use this pattern constantly.
+     * (We use this pattern constantly.)
      */
     @SuppressWarnings("unchecked")
     public static <T> Set<T> unmodifiableHashSet(T... elems) {
@@ -957,11 +1024,65 @@ public class UtilMisc {
     }
     
     /**
-     * SCIPIO: Returns an unmodifiable array list
-     * we use this pattern constantly.
+     * SCIPIO: Returns an unmodifiable hash set copied from the given collection.
+     */
+    public static <T> Set<T> unmodifiableHashSetCopy(Collection<? extends T> collection) {
+        return Collections.unmodifiableSet(new HashSet<T>(collection));
+    }
+    
+    /**
+     * SCIPIO: Returns an unmodifiable linked hash set.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Set<T> unmodifiableLinkedHashSet(T... elems) {
+        return Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(elems)));
+    }
+    
+    /**
+     * SCIPIO: Returns an unmodifiable linked hash set copied from the given collection.
+     */
+    public static <T> Set<T> unmodifiableLinkedHashSetCopy(Collection<? extends T> collection) {
+        return Collections.unmodifiableSet(new LinkedHashSet<>(collection));
+    }
+    
+    /**
+     * SCIPIO: Returns an unmodifiable array list.
      */
     @SuppressWarnings("unchecked")
     public static <T> List<T> unmodifiableArrayList(T... elems) {
         return Collections.unmodifiableList(new ArrayList<>(Arrays.asList(elems)));
+    }
+    
+    /**
+     * SCIPIO: Returns an unmodifiable array list copied from the given collection.
+     */
+    public static <T> List<T> unmodifiableArrayListCopy(Collection<? extends T> collection) {
+        return Collections.unmodifiableList(new ArrayList<>(collection));
+    }
+    
+    /**
+     * SCIPIO: Returns an unmodifiable linked list.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> unmodifiableLinkedList(T... elems) {
+        return Collections.unmodifiableList(new LinkedList<>(Arrays.asList(elems)));
+    }
+    
+    /**
+     * SCIPIO: Returns an unmodifiable linked list copied from the given collection.
+     */
+    public static <T> List<T> unmodifiableLinkedListCopy(Collection<? extends T> collection) {
+        return Collections.unmodifiableList(new LinkedList<>(collection));
+    }
+    
+    /**
+     * SCIPIO: For an inMap with generics Map&lt;K, V&gt;, populates and returns the opposite mapping outMap, Map&lt;V, K&gt;
+     * Added 2017-07-12.
+     */
+    public static <K, V> Map<V, K> putAllReverseMapping(Map<V, K> outMap, Map<? extends K, ? extends V> inMap) {
+        for(Map.Entry<? extends K, ? extends V> entry : inMap.entrySet()) {
+            outMap.put(entry.getValue(), entry.getKey());
+        }
+        return outMap;
     }
 }

@@ -628,7 +628,7 @@ NOTE: 2016-11-04: The return value behavior for #makeOfbizUrl ''may'' be changed
         extLoginKey=(args.extLoginKey!"") fullPath=(args.fullPath!"") secure=(args.secure!"") encode=(args.encode!"") 
         rawParams=rawParams strict=strict escapeAs=(args.escapeAs!"")/></#local>
   <#else>
-    <#local res><@ofbizUrl uri=args rawParams=true /></#local>
+    <#local res><@ofbizUrl uri=args rawParams=true strict=true/></#local>
   </#if>
   <#return res>
 </#function>
@@ -698,7 +698,7 @@ NOTE: This function is subject to escaping particularities - see its cousin #mak
         rawParams=rawParams strict=strict escapeAs=(args.escapeAs!"")/></#local>
   <#else>
     <#local res><@ofbizUrl uri=args absPath=false interWebapp=false controller=false extLoginKey=false
-        rawParams=true /></#local>
+        rawParams=true strict=true/></#local>
   </#if>
   <#return res>
 </#function>
@@ -773,7 +773,7 @@ NOTE: This function is subject to escaping particularities - see its cousin #mak
         rawParams=rawParams strict=strict escapeAs=(args.escapeAs!"")/></#local>
   <#else>
     <#local res><@ofbizUrl uri=args absPath="" interWebapp=true webSiteId=webSiteId
-        controller="" extLoginKey="" rawParams=true/></#local>
+        controller="" extLoginKey="" rawParams=true strict=true/></#local>
   </#if>
   <#return res>
 </#function>
@@ -798,6 +798,9 @@ NOTE: 2016-10-18: URL decoding: The default behavior of this macro has been '''c
 
 NOTE: This macro is subject to escaping particularities - see its cousin @ofbizUrl for details.
 
+NOTE: 2017-07-04: The {{{variant}}} parameter's usage in filenames has been fixed in Scipio and will be modified again soon;
+    see the parameter's documentation below. 
+
   * Parameters *
     uri                     = (string) URI or path as parameter; alternative to nested
                               WARN: At current time (2016-10-14), this macro version of @ofbizContentUrl does NOT prevent automatic
@@ -811,8 +814,29 @@ NOTE: This macro is subject to escaping particularities - see its cousin @ofbizU
                                   In Scipio, while this behavior is left intact for compatibility with old code, 
                                   you should simply avoid relying on any such check and not consider
                                   "/images/defaultImage.jpg" as a special value, or simply not use it.
-    variant                 = ((string)) variant
-                              (Stock Ofbiz parameter)
+    variant                 = ((string)) Variant image, normally same image with different dimensions
+                              2017-07-04: The variant name is now appended using one of the following 3 filename patterns:
+                              * {{{/file.ext}}} -> {{{/file-${variant}.ext}}} [STOCK]: in most cases the variant is added this way, before extension with dash, EXCEPT when:
+                              * {{{/file-original.ext}}} -> {{{/file-${variant}.ext}}} [NEW]: when the filename ends with the keyword "original" after dash, it is replaced with the variant word, and:
+                              * {{{/original.ext}}} -> {{{/${variant}.ext}}} [NEW]: when the filename part is exactly the keyword "original", it is substituted with the variant word.
+                              The NEW cases have been added so that the macro now supports the stock product image upload configuration (see catalog.properties),
+                              rather than conflicting with it.
+                              SPECIAL PREFIXES: The variant can be prefixed with one of the following characters:
+                              * {{{-}}}: this forces the first STOCK case above, to support filenames that originally were named "original".
+                              * {{{~}}}: TODO: NOT IMPLEMENTED: special operator: if the variant begins with the tilde character (~), a special closest-matching behavior will be enabled... 
+                              (Stock Ofbiz parameter, modified in Scipio)
+    autoVariant             = (min|max|true|false|, default: false) Enable automatic variant selection with the specified selection mode
+                              * {{{true/min}}}: selects the smallest image that is bigger than the dimensions specified by width/height parameters
+                              * {{{max}}}: selects the largest image that is smaller than the dimensions specified by width/height parameters
+                              WARN: Like the {{{variant}}} parameter, in order for this to work properly for an image, the filesystem must contain
+                                  the proper variants for the image that match the explicit or implied variant configuration ({{{variantCfg}}} parameter).
+    width                   = ((int)) Target image width, for autoVariant 
+    height                  = ((int)) Target image height, for autoVariant
+    variantCfg              = Path to a variant configuration file (ImageProperties.xml)
+                              If omitted, this will lookup a default configuration file based on the settings in:
+                                {{{/framework/common/config/imagecommon.properties}}}
+                              The common/default/fallback/reference file is:
+                                {{{/framework/common/config/ImageProperties.xml}}}                              
     ctxPrefix               = ((boolean)|(string), default: false) Contextual path prefix
                               Extra path prefix prepended to the uri, which may replace the central system default prefix if
                               it produces an absolute URL (prefixed with "http:", "https:", or "//").
@@ -848,6 +872,7 @@ NOTE: This macro is subject to escaping particularities - see its cousin @ofbizU
                               (New in Scipio) 
                               
   * History *
+    Enhanced for 1.14.4 (variant parameter enhancement; autoVariant parameters added).
     Enhanced for 1.14.2.
 -->
 <#-- IMPLEMENTED AS TRANSFORM
@@ -890,9 +915,10 @@ NOTE: This function is subject to escaping particularities - see its cousin #mak
     <#-- DEV NOTE: no rawString around ctxPrefix because already done by the macro (exceptionally) -->
     <#local res><@ofbizContentUrl uri=(args.uri!"") variant=(args.variant!"") 
         ctxPrefix=(args.ctxPrefix!false) urlDecode=(args.urlDecode!"") 
+        autoVariant=(args.autoVariant!"") width=(args.width!"") height=(args.height!"") variantCfg=(args.variantCfg!"") 
         strict=strict rawParams=rawParams/></#local>
   <#else>
-    <#local res><@ofbizContentUrl uri=args variant=variant strict=true rawParams=true/></#local>
+    <#local res><@ofbizContentUrl uri=args variant=variant rawParams=true strict=true/></#local>
   </#if>
   <#return res>
 </#function>
@@ -1511,8 +1537,9 @@ Adds parameters from a hash to a URL param string (no full URL logic).
     paramMap                = ((map), required) Map of keys to values to add
     paramDelim              = (default: "&amp;") Param delimiter
     includeEmpty            = ((boolean), default: true) If true, include empty values; if false, omit empty values
+    urlEncode               = ((boolean), default: false) If true, URL-encode each value.
 -->
-<#function addParamsToStr paramStr paramMap paramDelim="&amp;" includeEmpty=true>
+<#function addParamsToStr paramStr paramMap paramDelim="&amp;" includeEmpty=true urlEncode=false>
   <#local res = paramStr>
   <#local paramMap = toSimpleMap(paramMap)>
   <#list mapKeys(paramMap) as key>
@@ -1520,11 +1547,31 @@ Adds parameters from a hash to a URL param string (no full URL logic).
       <#local res = res + paramDelim>
     </#if>
     <#if includeEmpty || paramMap[key]?has_content>
-      <#local res = res + key + "=" + rawString(paramMap[key]!"")>
+      <#if urlEncode>
+        <#local res = res + key + "=" + rawString(paramMap[key]!"")?url>
+      <#else>
+        <#local res = res + key + "=" + rawString(paramMap[key]!"")>
+      </#if>
     </#if>
   </#list>
   <#return res>
-</#function> 
+</#function>
+
+<#-- 
+*************
+* addParamsToStrUrlEnc
+************
+Adds url-encoded parameters from a hash to a URL param string (no full URL logic).
+                    
+  * Parameters *
+    paramStr                = (required) Param string
+    paramMap                = ((map), required) Map of keys to values to add
+    paramDelim              = (default: "&amp;") Param delimiter
+    includeEmpty            = ((boolean), default: true) If true, include empty values; if false, omit empty values
+-->
+<#function addParamsToStrUrlEnc paramStr paramMap paramDelim="&amp;" includeEmpty=true>
+  <#return addParamsToStr(paramStr, paramMap, paramDelim, includeEmpty, true)>
+</#function>
 
 <#-- 
 *************
